@@ -1,4 +1,5 @@
-#多元线性回归
+# 多元线性回归
+from re import M
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -21,35 +22,46 @@ def compute_cost(w, b, points):
         total_cost += (y-w*x-b)**2  # 损失函数
     return total_cost/M
 
-# 拟合函数
-def average(data):  # 求平均值
-    sum = 0
-    num = len(data)
-    for i in range(num):
-        sum += data[i]
-    return sum/num
-def fit(x, y):
-    M = len(x)
-    x_bar = average(x)
-    sum_yx = 0
-    sum_x2 = 0
-    sum_mb = 0
-    for i in range(M):
-        sum_yx += y[i]*(x[i]-x_bar)
-        sum_x2 += x[i]**2
-    w = sum_yx/(sum_x2-M*(x_bar**2))  # 计算w
-    for i in range(M):
-        sum_mb += (y[i]-w*x[i])
-    b = sum_mb/M  # 计算b
-    return w, b
+
+# 初始参数定义
+alpha = 0.0001
+init_w = 0
+init_b = 0
+num_iter = 10
+
+# 梯度下降
+def gradient_descent(points, init_w, init_b, alpha, num_iter):
+    w = init_w
+    b = init_b
+    list_cost = []  # 记录损失变化
+
+    for i in range(num_iter):
+        list_cost.append(compute_cost(w, b, points))
+        w, b = step_gradient_descent(w, b, points, alpha)
+    return [w, b, list_cost]
 
 
-# 输出参数
-w, b = fit(x, y)
-cost = compute_cost(w, b, points)
-print("w is:", w)
-print("b is:", b)
-print("cost is:", cost)
+def step_gradient_descent(w, b, points, alpha):
+    sum_grad_w = 0
+    sum_grad_b = 0
+    M = len(points)
+    for i in range(M):
+        x = points[i, 0]
+        y = points[i, 1]
+        sum_grad_w += (w*x+b-y)*x
+        sum_grad_b += w*x+b-y
+
+    grad_w = 2/M*sum_grad_w
+    grad_b = 2/M*sum_grad_b
+    update_w = w - alpha*grad_w
+    update_b = b - alpha*grad_b
+    return update_w, update_b
+
+w,b,list_cost=gradient_descent(points,init_w,init_b,alpha,num_iter)
+print("w is ",w)
+print("b is ",b)
+plt.plot(list_cost)
+plt.show()
 
 # 画出拟合图像
 plt.scatter(x, y)
