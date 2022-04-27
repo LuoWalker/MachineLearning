@@ -57,9 +57,11 @@ def step_gradient_descent(w, b, points, alpha):
     update_b = b - alpha*grad_b
     return update_w, update_b
 
-w,b,list_cost=gradient_descent(points,init_w,init_b,alpha,num_iter)
-print("w is ",w)
-print("b is ",b)
+w, b, list_cost = gradient_descent(points, init_w, init_b, alpha, num_iter)
+cost = list_cost[-1]
+print("w is ", w)
+print("b is ", b)
+print("cost is ", cost)
 plt.plot(list_cost)
 plt.show()
 
