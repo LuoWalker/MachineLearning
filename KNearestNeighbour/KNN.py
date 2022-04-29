@@ -16,7 +16,7 @@ x = iris.data
 y = iris.target.reshape(-1, 1)
 
 x_train, x_test, y_train, y_test = train_test_split(
-    x, y, test_size=0.3, random_state=11, stratify=y)  # random_state 随机种子,stratify 测试集中与数据中的y比例保持一致
+    x, y, test_size=0.3, random_state=35, stratify=y)  # random_state 随机种子,stratify 测试集中与数据中的y比例保持一致
 
 # 核心算法
 def l1_distance(a, b):
@@ -31,15 +31,39 @@ class KNN(object):
         self.k_neighbors = k_neighbors
         self.dist_func = dist_func
 
-    #训练模型方法
-    def fit(self,x,y):
+    # 训练模型方法
+    def fit(self, x, y):
         self.x_train = x
-        self.x_train = y
+        self.y_train = y
 
-    #预测模型方法
-    def predict(self,x):
-        predict_y = np.zeros((x.shape[0],1),dtype=self.predict_y.dtype) #默认为0，zeros( (行,列),类型 )
-        for i,x_test in enumerate(x): #enumerate:取元组 序号和值
-            pass
+    # 预测模型方法
+    def predict(self, x):
+        # 默认为0，zeros( (行,列),类型 )
+        predict_y = np.zeros((x.shape[0], 1), dtype=self.y_train.dtype)
+        for i, x_test in enumerate(x):  # enumerate:取元组 序号和值
+
+            # 计算每个测试数据到各个训练数据的距离
+            distances = self.dist_func(self.x_train, x_test)
+            # 将距离排序,取得其索引
+            nn_index = np.argsort(distances)
+            # 取前k个，分析其分类
+            nn_y = self.y_train[nn_index[:self.k_neighbors]
+                                ].ravel()  # ravel()扩展成一维
+            # 统计出现最多的分类
+            # bincount：统计数组中每个值出现的次数// argmax：返回最大值的索引
+            predict_y[i] = np.argmax(np.bincount(nn_y))
 
         return predict_y
+
+knn = KNN(k_neighbors=3)
+knn.fit(x_train, y_train)
+result_list = []
+for p in [1,2]:
+    knn.dist_func = l1_distance if p==1 else l2_distance
+    for k in range(1,10,2):
+        knn.k_neighbors = k
+        predict_y = knn.predict(x_test)
+        accurancy = accuracy_score(y_test, predict_y)
+        result_list.append([k,"欧式距离" if p==1 else "曼哈顿距离",accurancy])
+df = pd.DataFrame(result_list,columns=['k','距离函数','准确率'])
+print(df)     
